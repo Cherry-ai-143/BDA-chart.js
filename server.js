@@ -8,17 +8,18 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json()); // Parse JSON bodies
+app.use(bodyParser.json());
 
-// ✅ MongoDB connection (update if using Atlas or different DB)
-mongoose.connect("mongodb://localhost:27017/agriculture", {
+// ✅ MongoDB Atlas connection
+const mongoURI = "mongodb+srv://mohancc:SGwZeEskbiur9mfK@cluster0.ioqrsn2.mongodb.net/agriculture?retryWrites=true&w=majority";
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "Connection error:"));
-db.once("open", () => console.log("✅ MongoDB connected successfully!"));
+db.once("open", () => console.log("✅ MongoDB Atlas connected successfully!"));
 
 // Schema for agriculture data
 const cropSchema = new mongoose.Schema({
@@ -37,7 +38,7 @@ const cropSchema = new mongoose.Schema({
   season: String,
 });
 
-const Crop = mongoose.model("Crop", cropSchema);
+const Crop = mongoose.model("Crop", cropSchema, "crops"); // explicitly set collection name
 
 // ------------------ API Endpoints ------------------ //
 
@@ -132,7 +133,6 @@ app.get('/analytics/dynamic', async (req, res) => {
   const yField = fieldMap[y];
   if (!xField || !yField) return res.status(400).json({ error: 'Invalid field' });
 
-  // Numeric fields for averaging
   const numericFields = ['year', 'area', 'rainfall', 'temperature', 'yield', 'humidity', 'price'];
   const isYNumeric = numericFields.includes(yField);
 
